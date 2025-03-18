@@ -263,6 +263,11 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       temp.y = 0.0
 
       pt.addScaledVector(temp, 10 * dt)
+    } else {
+      // When movement stops, immediately sync positions to prevent sliding
+      player.position.copy(pt)
+      chasing.copy(player.position)
+      camera.position.copy(chasing)
     }
 
     if (player && session) {

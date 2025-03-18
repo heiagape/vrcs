@@ -248,7 +248,7 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
 
   useEffect(() => {
     if (!session) {
-      camera.position.y = 1.6
+      camera.position.y = 1.7
       // Optionally, reset the player's position if applicable
       if (player) {
         player.position.y = 0.0

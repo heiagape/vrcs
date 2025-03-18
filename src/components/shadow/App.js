@@ -19,7 +19,7 @@ import { easing } from 'maath'
 import { Hospital } from './Hospital.jsx'
 import { Lab } from './Biolab4.jsx'
 import { Lab4 } from './Biobank.jsx'
-// import { CameraHelper } from 'three'
+// import { CameraHelper } from 'th
 import { VRButton, XR } from '@react-three/xr'
 import { GUI, Walker } from './Walker.jsx'
 import { DoubleSide, MeshBasicMaterial, RepeatWrapping, VideoTexture } from 'three'

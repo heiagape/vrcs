@@ -17,6 +17,8 @@ import { useControls } from 'leva'
 import { Perf } from 'r3f-perf'
 import { easing } from 'maath'
 import { Hospital } from './Hospital.jsx'
+import { Lab } from './Biolab4.jsx'
+import { Lab4 } from './Biobank.jsx'
 // import { CameraHelper } from 'three'
 import { VRButton, XR } from '@react-three/xr'
 import { GUI, Walker } from './Walker.jsx'
@@ -90,60 +92,7 @@ export default function App() {
               <group position={[30, 0, -2]}>
                 <group rotation={[0, Math.PI * 1.0, 0]}>
                   <group position={[0, 0, 3]}>
-                    <Hospital
-                      BigScreen={function BigScreen({ bigScreen }) {
-                        let video = useMemo(() => {
-                          return document.createElement('video')
-                        }, [])
-                        useEffect(() => {
-                          video.src = `/assets/2023-04-27/v007/movie-compressed.mp4`
-
-                          video.muted = true
-                          video.onplay = () => {
-                            let texture = new VideoTexture(video)
-                            texture.wrapS = texture.wrapT = RepeatWrapping
-                            texture.rotation = Math.PI * -0.5
-                            texture.repeat.set(-1, 1)
-                            texture.needsUpdate = true
-                            bigScreen.material = new MeshBasicMaterial({
-                              map: texture,
-                              color: '#ffffff',
-                            })
-                            texture.needsUpdate = true
-                          }
-                          video.autoplay = true
-                          video.playsInline = true
-                        }, [video, bigScreen])
-
-                        let texture = useTexture(
-                          `data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M3 22v-20l18 10-18 10z"/></svg>`,
-                        )
-
-                        // return (
-                        //   <>
-                        //     {/*  */}
-                        //     {createPortal(
-                        //       <Box
-                        //         position={[0, 5.3, 0.3]}
-                        //         onClick={(ev) => {
-                        //           video.play()
-                        //           ev.object.visible = false
-                        //         }}
-                        //         scale={[0.3 * 1 * 0.5, 1 * 0.5, 0.01]}
-                        //       >
-                        //         <meshBasicMaterial
-                        //           color={'#ff0000'}
-                        //           transparent={true}
-                        //           map={texture}
-                        //         ></meshBasicMaterial>
-                        //       </Box>,
-                        //       bigScreen,
-                        //     )}
-                        //   </>
-                        // )
-                      }}
-                      scale={1}
-                    />
+                    <Lab4></Lab4>
                     {/* */}
                   </group>
                 </group>
@@ -195,3 +144,35 @@ export default function App() {
 //     </Float>
 //   )
 // }
+// ;<Hospital
+//   BigScreen={function BigScreen({ bigScreen }) {
+//     let video = useMemo(() => {
+//       return document.createElement('video')
+//     }, [])
+//     useEffect(() => {
+//       video.src = `/assets/2023-04-27/v007/movie-compressed.mp4`
+
+//       video.muted = true
+//       video.onplay = () => {
+//         let texture = new VideoTexture(video)
+//         texture.wrapS = texture.wrapT = RepeatWrapping
+//         texture.rotation = Math.PI * -0.5
+//         texture.repeat.set(-1, 1)
+//         texture.needsUpdate = true
+//         bigScreen.material = new MeshBasicMaterial({
+//           map: texture,
+//           color: '#ffffff',
+//         })
+//         texture.needsUpdate = true
+//       }
+//       video.autoplay = true
+//       video.playsInline = true
+//     }, [video, bigScreen])
+
+//     let texture = useTexture(
+//       `data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M3 22v-20l18 10-18 10z"/></svg>`,
+//     )
+
+//   }}
+//   scale={1}
+// />

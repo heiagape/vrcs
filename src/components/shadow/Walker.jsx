@@ -248,6 +248,9 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {
+    // Add velocity tracking with damping
+    const velocity = useRef(new Vector3(0, 0, 0)).current
+    const dampingFactor = 0.92 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
     if (isDown.current) {
       temp.set(0, 0, -1)
 
@@ -262,12 +265,19 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       }
       temp.y = 0.0
 
-      pt.addScaledVector(temp, 10 * dt)
+      // Set velocity based on input direction and speed
+      velocity.copy(temp).multiplyScalar(10 * speed)
+      pt.addScaledVector(velocity, dt)
     } else {
-      // When movement stops, immediately sync positions to prevent sliding
-      player.position.copy(pt)
-      chasing.copy(player.position)
-      camera.position.copy(chasing)
+      // Apply damping when not moving
+      velocity.multiplyScalar(dampingFactor)
+
+      // Only move if velocity is significant
+      if (velocity.lengthSq() > 0.001) {
+        pt.addScaledVector(velocity, dt)
+      } else {
+        velocity.set(0, 0, 0) // Reset when basically stopped
+      }
     }
 
     if (player && session) {

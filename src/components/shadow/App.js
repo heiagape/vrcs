@@ -173,6 +173,28 @@ export default function App() {
 //       `data:image/svg+xml;utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M3 22v-20l18 10-18 10z"/></svg>`,
 //     )
 
+//     // return (
+//     //   <>
+//     //     {/*  */}
+//     //     {createPortal(
+//     //       <Box
+//     //         position={[0, 5.3, 0.3]}
+//     //         onClick={(ev) => {
+//     //           video.play()
+//     //           ev.object.visible = false
+//     //         }}
+//     //         scale={[0.3 * 1 * 0.5, 1 * 0.5, 0.01]}
+//     //       >
+//     //         <meshBasicMaterial
+//     //           color={'#ff0000'}
+//     //           transparent={true}
+//     //           map={texture}
+//     //         ></meshBasicMaterial>
+//     //       </Box>,
+//     //       bigScreen,
+//     //     )}
+//     //   </>
+//     // )
 //   }}
 //   scale={1}
 // />

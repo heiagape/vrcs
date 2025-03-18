@@ -246,6 +246,16 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
     }
   })
 
+  useEffect(() => {
+    if (!session) {
+      camera.position.y = 1.6
+      // Optionally, reset the player's position if applicable
+      if (player) {
+        player.position.y = 0.0
+      }
+    }
+  }, [session, player, camera, pt])
+
   //
   useFrame(({ camera, mouse, scene }, dt) => {
     // Add velocity tracking with damping
@@ -271,10 +281,14 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       // Always lerp the player to the target position for smooth movement
       // but use a higher coefficient when not moving to stop more quickly
       const lerpFactor = isDown.current ? 0.9 : 1.0 // Higher value means quicker stop
+      pt.y = 0.0
 
       player.position.lerp(pt, lerpFactor)
       chasing.copy(player.position)
       camera.position.lerp(chasing, lerpFactor)
+    }
+    if (!player && !session) {
+      pt.y = 0.7
     }
 
     // let q = new Quaternion()

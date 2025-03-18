@@ -246,7 +246,7 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
     }
   })
   const velocity = useRef(new Vector3(0, 0, 0)).current
-  const dampingFactor = 0.92 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
+  const dampingFactor = 0.1 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {

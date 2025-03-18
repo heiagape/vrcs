@@ -245,12 +245,13 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       camera.quaternion.slerp(proxy.quaternion, 0.1)
     }
   })
+  const velocity = useRef(new Vector3(0, 0, 0)).current
+  const dampingFactor = 0.92 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {
     // Add velocity tracking with damping
-    const velocity = useRef(new Vector3(0, 0, 0)).current
-    const dampingFactor = 0.92 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
+
     if (isDown.current) {
       temp.set(0, 0, -1)
 

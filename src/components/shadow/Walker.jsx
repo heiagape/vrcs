@@ -246,15 +246,15 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
     }
   })
 
-  useEffect(() => {
-    if (!session) {
-      camera.position.y = 1.7
-      // Optionally, reset the player's position if applicable
-      if (player) {
-        player.position.y = 0.2
-      }
-    }
-  }, [session, player, camera, pt])
+  // useEffect(() => {
+  //   if (!session) {
+  //     camera.position.y = 1.45
+  //     // Optionally, reset the player's position if applicable
+  //     if (player) {
+  //       player.position.y = 0.0
+  //     }
+  //   }
+  // }, [session, player, camera, pt])
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {
@@ -281,7 +281,7 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       // Always lerp the player to the target position for smooth movement
       // but use a higher coefficient when not moving to stop more quickly
       const lerpFactor = isDown.current ? 0.9 : 1.0 // Higher value means quicker stop
-      pt.y = 0.0
+      pt.y = 0.3
 
       player.position.lerp(pt, lerpFactor)
       chasing.copy(player.position)

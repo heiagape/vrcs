@@ -245,8 +245,6 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       camera.quaternion.slerp(proxy.quaternion, 0.1)
     }
   })
-  const velocity = useRef(new Vector3(0, 0, 0)).current
-  const dampingFactor = 0.1 // Adjust this value between 0-1 (closer to 1 = slower deceleration)
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {
@@ -266,28 +264,17 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       }
       temp.y = 0.0
 
-      // Set velocity based on input direction and speed
-      velocity.copy(temp).multiplyScalar(10 * speed)
-      pt.addScaledVector(velocity, dt)
-    } else {
-      // Apply damping when not moving
-      velocity.multiplyScalar(dampingFactor)
-
-      // Only move if velocity is significant
-      if (velocity.lengthSq() > 0.001) {
-        pt.addScaledVector(velocity, dt)
-      } else {
-        velocity.set(0, 0, 0) // Reset when basically stopped
-      }
+      pt.addScaledVector(temp, 10 * dt * speed)
     }
 
     if (player && session) {
-      player.position.lerp(pt, 0.1)
+      // Always lerp the player to the target position for smooth movement
+      // but use a higher coefficient when not moving to stop more quickly
+      const lerpFactor = isDown.current ? 0.9 : 1.0 // Higher value means quicker stop
 
+      player.position.lerp(pt, lerpFactor)
       chasing.copy(player.position)
-
-      camera.position.lerp(chasing, 0.1)
-    } else {
+      camera.position.lerp(chasing, lerpFactor)
     }
 
     // let q = new Quaternion()

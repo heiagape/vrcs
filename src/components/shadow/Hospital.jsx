@@ -75,11 +75,11 @@ export function Hospital({ BigScreen, ...props }) {
       {...props}
       dispose={null}
     >
-      {scene && (
+      {/* {scene && (
         <Suspense fallback={null}>
           <BigScreen bigScreen={scene.getObjectByName('bigScreen')}></BigScreen>
         </Suspense>
-      )}
+      )} */}
       <primitive object={scene}></primitive>
       {/* <group name="Scene">
         <mesh

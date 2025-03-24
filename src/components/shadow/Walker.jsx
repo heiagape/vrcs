@@ -288,7 +288,7 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       camera.position.lerp(chasing, lerpFactor)
     }
     if (!player && !session) {
-      pt.y = 0.7
+      pt.y = 0.4
     }
 
     // let q = new Quaternion()

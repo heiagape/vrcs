@@ -17,10 +17,10 @@ import { useControls } from 'leva'
 import { Perf } from 'r3f-perf'
 import { easing } from 'maath'
 import { Hospital } from './Hospital.jsx'
-import { Lab } from './Biolab4.jsx'
+//import { Lab } from './Biolab4.jsx'
 import { Lab4 } from './Biobank.jsx'
 // import { CameraHelper } from 'th
-import { VRButton, XR } from '@react-three/xr'
+import { VRButton, XR, useController } from '@react-three/xr'
 import { GUI, Walker } from './Walker.jsx'
 import { DoubleSide, MeshBasicMaterial, RepeatWrapping, VideoTexture } from 'three'
 import { LightingFile } from './LightingFile/LightingFile.js'
@@ -75,6 +75,62 @@ export default function App() {
     size: { value: 35, min: 0, max: 100, step: 0.1 },
     focus: { value: 0.5, min: 0, max: 2, step: 0.1 },
   })
+  const [activeModel, setActiveModel] = useState('Lab4') // State to track the active model
+
+  // Function to toggle between models
+  const toggleModel = () => {
+    setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+  }
+
+  // Handle keyboard input for non-VR toggling
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key.toLowerCase() === 'c') {
+        toggleModel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  // **Updated Controllers Component**
+  const Controllers = () => {
+    const controller = useController('right') // Change to 'left' if needed
+    const prevButtonStates = useRef([false, false]) // Track previous states of A and B
+
+    useFrame(() => {
+      if (controller && controller.gamepad) {
+        const { buttons } = controller.gamepad
+
+        // Ensure there are enough buttons
+        if (buttons.length >= 2) {
+          const aPressed = buttons[0].pressed // Button 0: A (Right) / X (Left)
+          const bPressed = buttons[1].pressed // Button 1: B (Right) / Y (Left)
+
+          // Detect rising edge for A button
+          if (aPressed && !prevButtonStates.current[0]) {
+            console.log('A button pressed')
+            toggleModel()
+          }
+
+          // Detect rising edge for B button
+          if (bPressed && !prevButtonStates.current[1]) {
+            console.log('B button pressed')
+            toggleModel()
+          }
+
+          // Update previous button states
+          prevButtonStates.current = [aPressed, bPressed]
+        }
+      }
+    })
+
+    return null
+  }
 
   return (
     <>
@@ -88,13 +144,11 @@ export default function App() {
       >
         <XR foveation={1}>
           <Walker startAt={[0, 0.7, 0.1]}>
+            <Controllers /> {/* **Updated Controllers Component Included Here** */}
             <group rotation={[0, 1.73, 0]}>
               <group position={[30, 0, -2]}>
                 <group rotation={[0, Math.PI * 1.0, 0]}>
-                  <group position={[0, 0, 3]}>
-                    <Lab4></Lab4>
-                    {/* */}
-                  </group>
+                  <group position={[0, 0, 3]}>{activeModel === 'Lab4' ? <Lab4 /> : <Hospital />}</group>
                 </group>
               </group>
             </group>
@@ -120,16 +174,8 @@ export default function App() {
 
         {/* <Environment files={`/venice_sunset_1k.hdr`} background></Environment> */}
       </Canvas>
-      <GUI></GUI>
-      <VRButton></VRButton>
-      {/* <div className=' absolute bottom-24 right-0 m-4 select-none rounded-xl p-2 text-xs opacity-50'>
-        <>
-          <a href={`https://reunite.digital`} target='_blank'>
-            Agape
-          </a>{' '}
-          + hyg
-        </>
-      </div> */}
+      <GUI />
+      <VRButton />
     </>
   )
 }

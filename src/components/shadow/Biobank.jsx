@@ -148,5 +148,3 @@ export function Lab4(props) {
     </group>
   )
 }
-
-useGLTF.preload('/biobank.glb')

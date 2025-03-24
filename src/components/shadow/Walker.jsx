@@ -281,14 +281,14 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       // Always lerp the player to the target position for smooth movement
       // but use a higher coefficient when not moving to stop more quickly
       const lerpFactor = isDown.current ? 0.9 : 1.0 // Higher value means quicker stop
-      pt.y = 0.3
+      pt.y = 0.0
 
       player.position.lerp(pt, lerpFactor)
       chasing.copy(player.position)
       camera.position.lerp(chasing, lerpFactor)
     }
     if (!player && !session) {
-      pt.y = 0.4
+      pt.y = 1.0
     }
 
     // let q = new Quaternion()

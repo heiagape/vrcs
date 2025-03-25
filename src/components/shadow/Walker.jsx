@@ -148,12 +148,12 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
   const prevButtonStates = useRef([false, false])
 
   useFrame(() => {
-    if (rightController && rightController.gamepad) {
-      const { buttons } = rightController.gamepad
+    if (rightController?.inputSource?.gamepad) {
+      const { buttons } = rightController.inputSource.gamepad
       console.log('Right Controller Buttons:', buttons) // Debugging
 
-      const aPressed = buttons[0]?.pressed
-      const bPressed = buttons[1]?.pressed
+      const aPressed = buttons[4]?.pressed
+      const bPressed = buttons[5]?.pressed
 
       // Toggle model on A button press
       if (aPressed && !prevButtonStates.current[0]) {

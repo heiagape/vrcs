@@ -21,7 +21,7 @@ import { Hospital } from './Hospital.jsx'
 import { Lab4 } from './Biobank.jsx'
 // import { CameraHelper } from 'th
 import { VRButton, XR, useController } from '@react-three/xr'
-import { GUI, Walker } from './Walker.jsx'
+import { GUI, Walker, ModelSwitchButtons } from './Walker.jsx'
 import { DoubleSide, MeshBasicMaterial, RepeatWrapping, VideoTexture } from 'three'
 import { LightingFile } from './LightingFile/LightingFile.js'
 // import { ParticleRelay } from '../Particles/ParticleEngine/CoreEngine.jsx'

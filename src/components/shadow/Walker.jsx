@@ -97,7 +97,7 @@ export function GUI() {
   )
 }
 
-export function Walker({ startAt = [0, 0, 0.1], children }) {
+export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
   ///
   let [ctrler, setCtrler] = useState(false)
 
@@ -131,6 +131,10 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
     }
   }, [camera, player, startAt])
 
+  useEffect(() => {
+    console.log('Connected Controllers:', controllers)
+  }, [controllers])
+
   let left = useMemo(() => {
     return new Object3D()
   }, [])
@@ -140,7 +144,36 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
   }, [])
 
   const rightController = useController('right')
-  const lefctController = useController('left')
+  const leftController = useController('left')
+  const prevButtonStates = useRef([false, false])
+
+  useFrame(() => {
+    if (rightController && rightController.gamepad) {
+      const { buttons } = rightController.gamepad
+      console.log('Right Controller Buttons:', buttons) // Debugging
+
+      const aPressed = buttons[0]?.pressed
+      const bPressed = buttons[1]?.pressed
+
+      // Toggle model on A button press
+      if (aPressed && !prevButtonStates.current[0]) {
+        console.log('A button pressed')
+        setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+        prevButtonStates.current[0] = true
+      } else if (!aPressed && prevButtonStates.current[0]) {
+        prevButtonStates.current[0] = false
+      }
+
+      // Toggle model on B button press
+      if (bPressed && !prevButtonStates.current[1]) {
+        console.log('B button pressed')
+        setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+        prevButtonStates.current[1] = true
+      } else if (!bPressed && prevButtonStates.current[1]) {
+        prevButtonStates.current[1] = false
+      }
+    }
+  })
 
   // let player = useXR((s) => s.player);
   // let session = useXR((s) => s.session);
@@ -263,7 +296,7 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
     if (isDown.current) {
       temp.set(0, 0, -1)
 
-      if (ctrler === lefctController) {
+      if (ctrler === leftController) {
         temp.set(0, 0, 1)
         temp.applyQuaternion(ctrler.controller.quaternion)
       }
@@ -306,12 +339,13 @@ export function Walker({ startAt = [0, 0, 0.1], children }) {
       <Interactive
         onSelectStart={(event) => {
           setCtrler(event.target)
-          // console.log();
+          console.log(event)
           isDown.current = true
         }}
         onSelectEnd={(event) => {
           setCtrler(event.target)
           isDown.current = false
+          console.log(event)
         }}
         onSelect={(event) => {
           //

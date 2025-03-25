@@ -97,41 +97,6 @@ export default function App() {
     }
   }, [])
 
-  // **Updated Controllers Component**
-  const Controllers = () => {
-    const controller = useController('right') // Change to 'left' if needed
-    const prevButtonStates = useRef([false, false]) // Track previous states of A and B
-
-    useFrame(() => {
-      if (controller && controller.gamepad) {
-        const { buttons } = controller.gamepad
-
-        // Ensure there are enough buttons
-        if (buttons.length >= 2) {
-          const aPressed = buttons[0].pressed // Button 0: A (Right) / X (Left)
-          const bPressed = buttons[1].pressed // Button 1: B (Right) / Y (Left)
-
-          // Detect rising edge for A button
-          if (aPressed && !prevButtonStates.current[0]) {
-            console.log('A button pressed')
-            toggleModel()
-          }
-
-          // Detect rising edge for B button
-          if (bPressed && !prevButtonStates.current[1]) {
-            console.log('B button pressed')
-            toggleModel()
-          }
-
-          // Update previous button states
-          prevButtonStates.current = [aPressed, bPressed]
-        }
-      }
-    })
-
-    return null
-  }
-
   return (
     <>
       <Canvas
@@ -143,8 +108,7 @@ export default function App() {
         camera={{ position: [5, 2, 10], fov: 80 }}
       >
         <XR foveation={1}>
-          <Walker startAt={[0, 0.7, 0.1]}>
-            <Controllers /> {/* **Updated Controllers Component Included Here** */}
+          <Walker startAt={[0, 0.7, 0.1]} setActiveModel={setActiveModel}>
             <group rotation={[0, 1.73, 0]}>
               <group position={[30, 0, -2]}>
                 <group rotation={[0, Math.PI * 1.0, 0]}>

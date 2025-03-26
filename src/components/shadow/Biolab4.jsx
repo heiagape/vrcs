@@ -576,5 +576,3 @@ export function Lab(props) {
     </group>
   )
 }
-
-useGLTF.preload('/Biolab4.glb')

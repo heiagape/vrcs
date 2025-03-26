@@ -118,6 +118,8 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
     referenceSpace,
   } = useXR()
 
+  const models = ['Lab4', 'Lab5', 'Hospital']
+
   let camera = useThree((s) => s.camera)
   useEffect(() => {
     camera.position.fromArray(startAt)
@@ -158,7 +160,11 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
       // Toggle model on A button press
       if (aPressed && !prevButtonStates.current[0]) {
         console.log('A button pressed')
-        setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+        setActiveModel((prev) => {
+          const currentIndex = models.indexOf(prev)
+          const nextIndex = (currentIndex + 1) % models.length
+          return models[nextIndex]
+        })
         prevButtonStates.current[0] = true
       } else if (!aPressed && prevButtonStates.current[0]) {
         prevButtonStates.current[0] = false
@@ -167,7 +173,11 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
       // Toggle model on B button press
       if (bPressed && !prevButtonStates.current[1]) {
         console.log('B button pressed')
-        setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+        setActiveModel((prev) => {
+          const currentIndex = models.indexOf(prev)
+          const nextIndex = (currentIndex + 1) % models.length
+          return models[nextIndex]
+        })
         prevButtonStates.current[1] = true
       } else if (!bPressed && prevButtonStates.current[1]) {
         prevButtonStates.current[1] = false

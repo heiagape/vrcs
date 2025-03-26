@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, createPortal, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, createPortal, render, useFrame, useThree } from '@react-three/fiber'
 import {
   SoftShadows,
   Float,
@@ -19,6 +19,7 @@ import { easing } from 'maath'
 import { Hospital } from './Hospital.jsx'
 //import { Lab } from './Biolab4.jsx'
 import { Lab4 } from './Biobank.jsx'
+import { Lab5 } from './Biolab5.jsx'
 // import { CameraHelper } from 'th
 import { VRButton, XR, useController } from '@react-three/xr'
 import { GUI, Walker, ModelSwitchButtons } from './Walker.jsx'
@@ -75,11 +76,29 @@ export default function App() {
     size: { value: 35, min: 0, max: 100, step: 0.1 },
     focus: { value: 0.5, min: 0, max: 2, step: 0.1 },
   })
-  const [activeModel, setActiveModel] = useState('Lab4') // State to track the active model
+  const models = ['Lab4', 'Lab5', 'Hospital']
+  const [activeModel, setActiveModel] = useState(models[0])
 
   // Function to toggle between models
   const toggleModel = () => {
-    setActiveModel((prev) => (prev === 'Lab4' ? 'Hospital' : 'Lab4'))
+    setActiveModel((prev) => {
+      const currentIndex = models.indexOf(prev)
+      const nextIndex = (currentIndex + 1) % models.length
+      return models[nextIndex]
+    })
+  }
+
+  const renderModel = () => {
+    switch (activeModel) {
+      case 'Lab4':
+        return <Lab4 />
+      case 'Lab5':
+        return <Lab5 />
+      case 'Hospital':
+        return <Hospital />
+      default:
+        return null
+    }
   }
 
   // Handle keyboard input for non-VR toggling
@@ -112,7 +131,7 @@ export default function App() {
             <group rotation={[0, 1.73, 0]}>
               <group position={[30, 0, -2]}>
                 <group rotation={[0, Math.PI * 1.0, 0]}>
-                  <group position={[0, 0, 3]}>{activeModel === 'Lab4' ? <Lab4 /> : <Hospital />}</group>
+                  <group position={[0, 0, 3]}>{renderModel()}</group>
                 </group>
               </group>
             </group>

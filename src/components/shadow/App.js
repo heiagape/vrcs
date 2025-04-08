@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, createPortal, render, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, createPortal, render, useFrame, useThree, useLoader } from '@react-three/fiber'
 import {
   SoftShadows,
   Float,
@@ -12,6 +12,7 @@ import {
   Box,
   useVideoTexture,
   useTexture,
+  Text,
 } from '@react-three/drei'
 import { useControls } from 'leva'
 import { Perf } from 'r3f-perf'
@@ -20,11 +21,13 @@ import { Hospital } from './Hospital.jsx'
 //import { Lab } from './Biolab4.jsx'
 import { Lab4 } from './Biobank.jsx'
 import { Lab5 } from './Biolab5.jsx'
+import { Tmobile } from './r6.jsx'
 // import { CameraHelper } from 'th
 import { VRButton, XR, useController } from '@react-three/xr'
 import { GUI, Walker, ModelSwitchButtons } from './Walker.jsx'
 import { DoubleSide, MeshBasicMaterial, RepeatWrapping, VideoTexture } from 'three'
 import { LightingFile } from './LightingFile/LightingFile.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 // import { ParticleRelay } from '../Particles/ParticleEngine/CoreEngine.jsx'
 
 function Light() {
@@ -69,6 +72,67 @@ function Light() {
   )
 }
 
+function MiniModelScene({ models, onSelectModel }) {
+  const spacing = 2
+  // Load all icon models
+  const tmobileIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/TM_Icon.glb')
+  const hospitalIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/CUHK_Icon.glb')
+  const lab02Icon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/Lab02_Icon.glb')
+  const lab1bIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/Lab_1A_Icon.glb')
+
+  return (
+    <group>
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} intensity={1} />
+
+      {models.map((model, index) => (
+        <group
+          key={model}
+          position={[index * spacing - (models.length * spacing) / 2 + 1, 0, -4]}
+          onClick={() => onSelectModel(model)}
+        >
+          {model === 'Tmobile' ? (
+            <primitive
+              object={tmobileIcon.scene.clone()}
+              scale={0.3}
+              position={[0, -0.3, 0]}
+              rotation={[0, Math.PI, 0]}
+            />
+          ) : model === 'Hospital' ? (
+            <primitive
+              object={hospitalIcon.scene.clone()}
+              scale={0.3}
+              position={[0, -0.3, 0]}
+              rotation={[0, Math.PI, 0]}
+            />
+          ) : model === 'Lab1' ? (
+            <primitive
+              object={lab02Icon.scene.clone()}
+              scale={0.3}
+              position={[0, -0.3, 0]}
+              rotation={[0, Math.PI, 0]}
+            />
+          ) : model === 'Lab2' ? (
+            <primitive
+              object={lab1bIcon.scene.clone()}
+              scale={0.3}
+              position={[0, -0.3, 0]}
+              rotation={[0, Math.PI, 0]}
+            />
+          ) : (
+            <Box args={[0.3, 0.3, 0.3]}>
+              <meshStandardMaterial color='#666666' />
+            </Box>
+          )}
+          <Text position={[0, 0.7, 0]} fontSize={0.15} color='black' anchorX='center' anchorY='middle'>
+            {model}
+          </Text>
+        </group>
+      ))}
+    </group>
+  )
+}
+
 export default function App() {
   const { impl, debug, enabled, samples, ...config } = useControls({
     debug: true,
@@ -76,45 +140,52 @@ export default function App() {
     size: { value: 35, min: 0, max: 100, step: 0.1 },
     focus: { value: 0.5, min: 0, max: 2, step: 0.1 },
   })
-  const models = ['Lab4', 'Lab5', 'Hospital']
-  const [activeModel, setActiveModel] = useState(models[0])
+  const models = ['Lab1', 'Lab2', 'Hospital', 'Tmobile']
+  const [activeModel, setActiveModel] = useState(null)
+  const [isSelecting, setIsSelecting] = useState(true)
 
-  // Function to toggle between models
-  const toggleModel = () => {
-    setActiveModel((prev) => {
-      const currentIndex = models.indexOf(prev)
-      const nextIndex = (currentIndex + 1) % models.length
-      return models[nextIndex]
-    })
+  const handleModelSelect = (model) => {
+    setActiveModel(model)
+    setIsSelecting(false)
   }
 
-  const renderModel = () => {
-    switch (activeModel) {
-      case 'Lab4':
-        return <Lab4 />
-      case 'Lab5':
-        return <Lab5 />
-      case 'Hospital':
-        return <Hospital />
-      default:
-        return null
-    }
-  }
-
-  // Handle keyboard input for non-VR toggling
+  // Add keyboard control for returning to model selection
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key.toLowerCase() === 'c') {
-        toggleModel()
+        setIsSelecting(true)
+        setActiveModel(null)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
+
+  // Add effect to handle activeModel changes
+  useEffect(() => {
+    if (activeModel === null) {
+      setIsSelecting(true)
+    }
+  }, [activeModel])
+
+  const renderModel = () => {
+    if (!activeModel) return null
+    switch (activeModel) {
+      case 'Lab1':
+        return <Lab4 />
+      case 'Lab2':
+        return <Lab5 />
+      case 'Hospital':
+        return <Hospital />
+      case 'Tmobile':
+        return <Tmobile />
+      default:
+        return null
+    }
+  }
 
   return (
     <>
@@ -124,17 +195,21 @@ export default function App() {
           st.gl.useLegacyLights = true
         }}
         shadows
-        camera={{ position: [5, 2, 10], fov: 80 }}
+        camera={{ position: [0, 1.6, 3], fov: 80 }}
       >
         <XR foveation={1}>
-          <Walker startAt={[0, 0.7, 0.1]} setActiveModel={setActiveModel}>
-            <group rotation={[0, 1.73, 0]}>
-              <group position={[30, 0, -2]}>
-                <group rotation={[0, Math.PI * 1.0, 0]}>
-                  <group position={[0, 0, 3]}>{renderModel()}</group>
+          <Walker startAt={[0, 0.7, 0.1]} setActiveModel={setActiveModel} resetRotation={isSelecting}>
+            {isSelecting ? (
+              <MiniModelScene models={models} onSelectModel={handleModelSelect} />
+            ) : (
+              <group rotation={[0, 1.73, 0]}>
+                <group position={[30, 0, -2]}>
+                  <group rotation={[0, Math.PI * 1.0, 0]}>
+                    <group position={[0, 0, 3]}>{renderModel()}</group>
+                  </group>
                 </group>
               </group>
-            </group>
+            )}
           </Walker>
         </XR>
 
@@ -148,14 +223,8 @@ export default function App() {
 
         <Light />
 
-        {/*  */}
-
-        {/* <Room scale={0.5} position={[0, -1, 0]} /> */}
         <Sky inclination={0.52} scale={320} />
-
         <LightingFile background={true} url={`/venice_sunset_1k.hdr`}></LightingFile>
-
-        {/* <Environment files={`/venice_sunset_1k.hdr`} background></Environment> */}
       </Canvas>
       <GUI />
       <VRButton />

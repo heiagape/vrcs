@@ -4,6 +4,7 @@ import { Controllers, Hands, Interactive, useController, useXR } from '@react-th
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DoubleSide, Object3D, Quaternion, Vector3 } from 'three'
 import { Gesture } from '@use-gesture/vanilla'
+import * as THREE from 'three'
 let ControlState = {
   guiLeft: false,
   guiRight: false,
@@ -97,7 +98,7 @@ export function GUI() {
   )
 }
 
-export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
+export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetRotation }) {
   ///
   let [ctrler, setCtrler] = useState(false)
 
@@ -157,28 +158,14 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
       const aPressed = buttons[4]?.pressed
       const bPressed = buttons[5]?.pressed
 
-      // Toggle model on A button press
-      if (aPressed && !prevButtonStates.current[0]) {
-        console.log('A button pressed')
-        setActiveModel((prev) => {
-          const currentIndex = models.indexOf(prev)
-          const nextIndex = (currentIndex + 1) % models.length
-          return models[nextIndex]
-        })
-        prevButtonStates.current[0] = true
+      // Return to main menu on A or B button press
+      if ((aPressed && !prevButtonStates.current[0]) || (bPressed && !prevButtonStates.current[1])) {
+        console.log('A/B button pressed - returning to main menu')
+        setActiveModel(null)
+        prevButtonStates.current[0] = aPressed
+        prevButtonStates.current[1] = bPressed
       } else if (!aPressed && prevButtonStates.current[0]) {
         prevButtonStates.current[0] = false
-      }
-
-      // Toggle model on B button press
-      if (bPressed && !prevButtonStates.current[1]) {
-        console.log('B button pressed')
-        setActiveModel((prev) => {
-          const currentIndex = models.indexOf(prev)
-          const nextIndex = (currentIndex + 1) % models.length
-          return models[nextIndex]
-        })
-        prevButtonStates.current[1] = true
       } else if (!bPressed && prevButtonStates.current[1]) {
         prevButtonStates.current[1] = false
       }
@@ -208,34 +195,73 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
     return new Object3D()
   }, [])
 
+  // Add raycaster for collision detection
+  const raycaster = useMemo(() => new THREE.Raycaster(), [])
+  const scene = useThree((state) => state.scene)
+  const collisionDistance = 1.0 // Minimum distance to maintain from objects
+
   let up = new Vector3(0, 1, 0)
   let speed = 0.2
   useFrame(({ camera }, dt) => {
+    // Store original position for collision check
+    const originalPosition = camera.position.clone()
+    let hasCollision = false
+
+    // Check for collisions in movement direction
     if (ControlState.keyBackward || ControlState.guiBackward) {
       temp.set(0, 0, 1)
       temp.applyAxisAngle(up, proxy.rotation.y)
-
       camera.position.addScaledVector(temp, 10 * dt * speed)
+
+      // Check collision
+      raycaster.set(camera.position, temp.normalize())
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+        hasCollision = true
+      }
     }
     if (ControlState.keyForward || ControlState.guiForward) {
       temp.set(0, 0, -1)
       temp.applyAxisAngle(up, proxy.rotation.y)
-
       camera.position.addScaledVector(temp, 10 * dt * speed)
+
+      // Check collision
+      raycaster.set(camera.position, temp.normalize())
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+        hasCollision = true
+      }
     }
 
     if (ControlState.keyLeft || ControlState.guiLeft) {
       temp.set(0, 0, -1)
       temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * 0.5)
-
       camera.position.addScaledVector(temp, 10 * dt * speed)
+
+      // Check collision
+      raycaster.set(camera.position, temp.normalize())
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+        hasCollision = true
+      }
     }
 
     if (ControlState.keyRight || ControlState.guiRight) {
       temp.set(0, 0, -1)
       temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * -0.5)
-
       camera.position.addScaledVector(temp, 10 * dt * speed)
+
+      // Check collision
+      raycaster.set(camera.position, temp.normalize())
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+        hasCollision = true
+      }
+    }
+
+    // If collision detected, revert to original position
+    if (hasCollision) {
+      camera.position.copy(originalPosition)
     }
   })
 
@@ -298,6 +324,13 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel }) {
   //     }
   //   }
   // }, [session, player, camera, pt])
+
+  // Add effect to handle rotation reset
+  useEffect(() => {
+    if (resetRotation) {
+      proxy.rotation.y = 0
+    }
+  }, [resetRotation, proxy])
 
   //
   useFrame(({ camera, mouse, scene }, dt) => {

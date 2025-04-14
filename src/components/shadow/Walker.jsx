@@ -207,55 +207,57 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
     const originalPosition = camera.position.clone()
     let hasCollision = false
 
-    // Check for collisions in movement direction
-    if (ControlState.keyBackward || ControlState.guiBackward) {
-      temp.set(0, 0, 1)
-      temp.applyAxisAngle(up, proxy.rotation.y)
-      camera.position.addScaledVector(temp, 10 * dt * speed)
+    // Only allow movement if not in VR mode menu selection
+    if (!resetRotation) {
+      if (ControlState.keyBackward || ControlState.guiBackward) {
+        temp.set(0, 0, 1)
+        temp.applyAxisAngle(up, proxy.rotation.y)
+        camera.position.addScaledVector(temp, 10 * dt * speed)
 
-      // Check collision
-      raycaster.set(camera.position, temp.normalize())
-      const intersects = raycaster.intersectObjects(scene.children, true)
-      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
-        hasCollision = true
+        // Check collision
+        raycaster.set(camera.position, temp.normalize())
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+          hasCollision = true
+        }
       }
-    }
-    if (ControlState.keyForward || ControlState.guiForward) {
-      temp.set(0, 0, -1)
-      temp.applyAxisAngle(up, proxy.rotation.y)
-      camera.position.addScaledVector(temp, 10 * dt * speed)
+      if (ControlState.keyForward || ControlState.guiForward) {
+        temp.set(0, 0, -1)
+        temp.applyAxisAngle(up, proxy.rotation.y)
+        camera.position.addScaledVector(temp, 10 * dt * speed)
 
-      // Check collision
-      raycaster.set(camera.position, temp.normalize())
-      const intersects = raycaster.intersectObjects(scene.children, true)
-      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
-        hasCollision = true
+        // Check collision
+        raycaster.set(camera.position, temp.normalize())
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+          hasCollision = true
+        }
       }
-    }
 
-    if (ControlState.keyLeft || ControlState.guiLeft) {
-      temp.set(0, 0, -1)
-      temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * 0.5)
-      camera.position.addScaledVector(temp, 10 * dt * speed)
+      if (ControlState.keyLeft || ControlState.guiLeft) {
+        temp.set(0, 0, -1)
+        temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * 0.5)
+        camera.position.addScaledVector(temp, 10 * dt * speed)
 
-      // Check collision
-      raycaster.set(camera.position, temp.normalize())
-      const intersects = raycaster.intersectObjects(scene.children, true)
-      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
-        hasCollision = true
+        // Check collision
+        raycaster.set(camera.position, temp.normalize())
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+          hasCollision = true
+        }
       }
-    }
 
-    if (ControlState.keyRight || ControlState.guiRight) {
-      temp.set(0, 0, -1)
-      temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * -0.5)
-      camera.position.addScaledVector(temp, 10 * dt * speed)
+      if (ControlState.keyRight || ControlState.guiRight) {
+        temp.set(0, 0, -1)
+        temp.applyAxisAngle(up, proxy.rotation.y + Math.PI * -0.5)
+        camera.position.addScaledVector(temp, 10 * dt * speed)
 
-      // Check collision
-      raycaster.set(camera.position, temp.normalize())
-      const intersects = raycaster.intersectObjects(scene.children, true)
-      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
-        hasCollision = true
+        // Check collision
+        raycaster.set(camera.position, temp.normalize())
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+          hasCollision = true
+        }
       }
     }
 

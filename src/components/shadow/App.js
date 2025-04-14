@@ -23,7 +23,7 @@ import { Lab4 } from './Biobank.jsx'
 import { Lab5 } from './Biolab5.jsx'
 import { Tmobile } from './r6.jsx'
 // import { CameraHelper } from 'th
-import { VRButton, XR, useController } from '@react-three/xr'
+import { VRButton, XR, useController, useXR, Interactive } from '@react-three/xr'
 import { GUI, Walker, ModelSwitchButtons } from './Walker.jsx'
 import { DoubleSide, MeshBasicMaterial, RepeatWrapping, VideoTexture } from 'three'
 import { LightingFile } from './LightingFile/LightingFile.js'
@@ -79,56 +79,62 @@ function MiniModelScene({ models, onSelectModel }) {
   const hospitalIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/CUHK_Icon.glb')
   const lab02Icon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/Lab02_Icon.glb')
   const lab1bIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/Lab_1A_Icon.glb')
+  const hkstpIcon = useLoader(GLTFLoader, '/assets/2023-04-27/v007/HKSTP_Icon.glb')
+
+  // Add VR controller interaction state
+  const [hoveredIcon, setHoveredIcon] = useState(null)
+  const { isPresenting } = useXR()
+
+  const renderModelIcon = (model, index) => {
+    const basePosition = [index * spacing - (models.length * spacing) / 2 + 1, 0, -4]
+    const textColor = hoveredIcon === model ? 'blue' : 'black'
+
+    let modelObject = null
+    if (model === 'STP Labs') {
+      modelObject = hkstpIcon
+    } else if (model === 'Tmobile') {
+      modelObject = tmobileIcon
+    } else if (model === 'Hospital') {
+      modelObject = hospitalIcon
+    } else if (model === 'Lab1') {
+      modelObject = lab02Icon
+    } else if (model === 'Lab2') {
+      modelObject = lab1bIcon
+    }
+
+    return (
+      <group key={model} position={basePosition} onClick={() => !isPresenting && onSelectModel(model)}>
+        {modelObject ? (
+          <Interactive
+            onSelectStart={() => isPresenting && onSelectModel(model)}
+            onHover={() => setHoveredIcon(model)}
+            onBlur={() => setHoveredIcon(null)}
+          >
+            <primitive
+              object={modelObject.scene.clone()}
+              scale={0.3}
+              position={[0, -0.3, 0]}
+              rotation={[0, Math.PI, 0]}
+            />
+          </Interactive>
+        ) : (
+          <Box args={[0.3, 0.3, 0.3]}>
+            <meshStandardMaterial color='#666666' />
+          </Box>
+        )}
+        <Text position={[0, 0.7, 0]} fontSize={0.15} color={textColor} anchorX='center' anchorY='middle'>
+          {model}
+        </Text>
+      </group>
+    )
+  }
 
   return (
     <group>
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} intensity={1} />
 
-      {models.map((model, index) => (
-        <group
-          key={model}
-          position={[index * spacing - (models.length * spacing) / 2 + 1, 0, -4]}
-          onClick={() => onSelectModel(model)}
-        >
-          {model === 'Tmobile' ? (
-            <primitive
-              object={tmobileIcon.scene.clone()}
-              scale={0.3}
-              position={[0, -0.3, 0]}
-              rotation={[0, Math.PI, 0]}
-            />
-          ) : model === 'Hospital' ? (
-            <primitive
-              object={hospitalIcon.scene.clone()}
-              scale={0.3}
-              position={[0, -0.3, 0]}
-              rotation={[0, Math.PI, 0]}
-            />
-          ) : model === 'Lab1' ? (
-            <primitive
-              object={lab02Icon.scene.clone()}
-              scale={0.3}
-              position={[0, -0.3, 0]}
-              rotation={[0, Math.PI, 0]}
-            />
-          ) : model === 'Lab2' ? (
-            <primitive
-              object={lab1bIcon.scene.clone()}
-              scale={0.3}
-              position={[0, -0.3, 0]}
-              rotation={[0, Math.PI, 0]}
-            />
-          ) : (
-            <Box args={[0.3, 0.3, 0.3]}>
-              <meshStandardMaterial color='#666666' />
-            </Box>
-          )}
-          <Text position={[0, 0.7, 0]} fontSize={0.15} color='black' anchorX='center' anchorY='middle'>
-            {model}
-          </Text>
-        </group>
-      ))}
+      {models.map((model, index) => renderModelIcon(model, index))}
     </group>
   )
 }
@@ -140,13 +146,19 @@ export default function App() {
     size: { value: 35, min: 0, max: 100, step: 0.1 },
     focus: { value: 0.5, min: 0, max: 2, step: 0.1 },
   })
-  const models = ['Lab1', 'Lab2', 'Hospital', 'Tmobile']
+  const models = ['STP Labs', 'Hospital', 'Tmobile']
   const [activeModel, setActiveModel] = useState(null)
   const [isSelecting, setIsSelecting] = useState(true)
+  const [subMenu, setSubMenu] = useState(null)
 
   const handleModelSelect = (model) => {
-    setActiveModel(model)
-    setIsSelecting(false)
+    if (model === 'STP Labs') {
+      setSubMenu('STP Labs')
+      setActiveModel(null)
+    } else {
+      setActiveModel(model)
+      setIsSelecting(false)
+    }
   }
 
   // Add keyboard control for returning to model selection
@@ -155,6 +167,7 @@ export default function App() {
       if (event.key.toLowerCase() === 'c') {
         setIsSelecting(true)
         setActiveModel(null)
+        setSubMenu(null)
       }
     }
 
@@ -166,10 +179,10 @@ export default function App() {
 
   // Add effect to handle activeModel changes
   useEffect(() => {
-    if (activeModel === null) {
+    if (activeModel === null && !subMenu) {
       setIsSelecting(true)
     }
-  }, [activeModel])
+  }, [activeModel, subMenu])
 
   const renderModel = () => {
     if (!activeModel) return null
@@ -187,6 +200,13 @@ export default function App() {
     }
   }
 
+  const getDisplayModels = () => {
+    if (subMenu === 'STP Labs') {
+      return ['Lab1', 'Lab2']
+    }
+    return models
+  }
+
   return (
     <>
       <Canvas
@@ -200,7 +220,7 @@ export default function App() {
         <XR foveation={1}>
           <Walker startAt={[0, 0.7, 0.1]} setActiveModel={setActiveModel} resetRotation={isSelecting}>
             {isSelecting ? (
-              <MiniModelScene models={models} onSelectModel={handleModelSelect} />
+              <MiniModelScene models={getDisplayModels()} onSelectModel={handleModelSelect} />
             ) : (
               <group rotation={[0, 1.73, 0]}>
                 <group position={[30, 0, -2]}>

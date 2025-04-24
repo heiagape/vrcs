@@ -243,8 +243,8 @@ export default function App() {
 
         <Light />
 
-        <Sky inclination={0.52} scale={320} />
-        <LightingFile background={true} url={`/venice_sunset_1k.hdr`}></LightingFile>
+        <Sky inclination={0.52} scale={30} rayleigh={4.0} turbidity={0.6} />
+        <LightingFile background={true} url='/venice_sunset_1k.hdr' />
       </Canvas>
       <GUI />
       <VRButton />

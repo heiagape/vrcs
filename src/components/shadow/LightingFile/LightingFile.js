@@ -14,16 +14,13 @@ export function LightingFile({ url, background }) {
 
     if (url.includes('.hdr')) {
       let rgbeLoader = new RGBELoader()
-
       let tex = await rgbeLoader.loadAsync(url)
       tex.mapping = EquirectangularReflectionMapping
-
       return tex
     }
 
     if (url.includes('.png') || url.includes('.jpg')) {
       let texLoader = new TextureLoader()
-
       let tex = await texLoader.loadAsync(url)
       tex.mapping = EquirectangularReflectionMapping
       tex.colorSpace = SRGBColorSpace
@@ -32,16 +29,26 @@ export function LightingFile({ url, background }) {
   }, [url])
 
   useEffect(() => {
-    scene.environment = tex
-    if (background) {
-      scene.background = tex
+    if (tex) {
+      // Only set environment if it's an HDR file
+      if (url.includes('.hdr')) {
+        scene.environment = tex
+      }
+
+      // Set background if requested
+      if (background) {
+        scene.background = tex
+      }
     }
+
     return () => {
-      tex.dispose()
+      if (tex) {
+        tex.dispose()
+      }
       scene.background = null
       scene.environment = null
     }
-  }, [tex, background, scene])
+  }, [tex, background, scene, url])
 
   return <></>
 }

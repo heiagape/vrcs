@@ -2,7 +2,7 @@ import { Sphere } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Controllers, Hands, Interactive, useController, useXR } from '@react-three/xr'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DoubleSide, Object3D, Quaternion, Vector3 } from 'three'
+import { DoubleSide, Object3D, Quaternion, Vector3, TextureLoader, PlaneGeometry, MeshBasicMaterial, Mesh } from 'three'
 import { Gesture } from '@use-gesture/vanilla'
 import * as THREE from 'three'
 let ControlState = {
@@ -158,10 +158,13 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
       const aPressed = buttons[4]?.pressed
       const bPressed = buttons[5]?.pressed
 
-      // Return to main menu on A or B button press
+      // Only return to main menu if not already in selection mode
       if ((aPressed && !prevButtonStates.current[0]) || (bPressed && !prevButtonStates.current[1])) {
-        console.log('A/B button pressed - returning to main menu')
-        setActiveModel(null)
+        if (!resetRotation) {
+          // Only reset if not in selection mode
+          console.log('A/B button pressed - returning to main menu')
+          setActiveModel(null)
+        }
         prevButtonStates.current[0] = aPressed
         prevButtonStates.current[1] = bPressed
       } else if (!aPressed && prevButtonStates.current[0]) {
@@ -337,6 +340,8 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
   //
   useFrame(({ camera, mouse, scene }, dt) => {
     // Add velocity tracking with damping
+    let hasCollision = false
+    const originalPosition = player ? player.position.clone() : camera.position.clone()
 
     if (isDown.current) {
       temp.set(0, 0, -1)
@@ -352,7 +357,14 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
       }
       temp.y = 0.0
 
-      pt.addScaledVector(temp, 10 * dt * speed)
+      // Check collision before moving
+      raycaster.set(player ? player.position : camera.position, temp.normalize())
+      const intersects = raycaster.intersectObjects(scene.children, true)
+      if (intersects.length > 0 && intersects[0].distance < collisionDistance) {
+        hasCollision = true
+      } else {
+        pt.addScaledVector(temp, 10 * dt * speed)
+      }
     }
 
     if (player && session) {
@@ -361,9 +373,16 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
       const lerpFactor = isDown.current ? 0.9 : 1.0 // Higher value means quicker stop
       pt.y = 0.0
 
-      player.position.lerp(pt, lerpFactor)
-      chasing.copy(player.position)
-      camera.position.lerp(chasing, lerpFactor)
+      if (!hasCollision) {
+        player.position.lerp(pt, lerpFactor)
+        chasing.copy(player.position)
+        camera.position.lerp(chasing, lerpFactor)
+      } else {
+        // If collision detected, revert to original position
+        player.position.copy(originalPosition)
+        camera.position.copy(originalPosition)
+        pt.copy(originalPosition)
+      }
     }
     if (!player && !session) {
       pt.y = 1.0
@@ -376,6 +395,51 @@ export function Walker({ startAt = [0, 0, 0.1], children, setActiveModel, resetR
 
   // const leftController = useController('left')
   // console.log(leftController)
+
+  // Add control image
+  const controlImageRef = useRef()
+
+  useEffect(() => {
+    // Load the control image texture
+    const texture = new TextureLoader().load('/assets/control.jpeg', (texture) => {
+      // Once texture is loaded, adjust plane size based on aspect ratio
+      const aspectRatio = texture.image.width / texture.image.height
+      if (controlImageRef.current) {
+        controlImageRef.current.scale.set(aspectRatio * 2, 2, 1)
+      }
+    })
+
+    // Create plane geometry and material
+    const geometry = new PlaneGeometry(1, 1)
+    const material = new MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: DoubleSide,
+    })
+
+    // Create mesh and add to scene
+    const mesh = new Mesh(geometry, material)
+    mesh.position.set(2, 2.5, -3) // Position above and behind the menu items
+
+    controlImageRef.current = mesh
+    scene.add(mesh)
+
+    // Cleanup
+    return () => {
+      scene.remove(mesh)
+      geometry.dispose()
+      material.dispose()
+      texture.dispose()
+    }
+  }, [scene])
+
+  // Update control image visibility based on menu state
+  useEffect(() => {
+    if (controlImageRef.current) {
+      controlImageRef.current.visible = resetRotation // Only show in menu/selection mode
+    }
+  }, [resetRotation])
+
   return (
     <group>
       <Controllers />
